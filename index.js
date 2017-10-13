@@ -1,7 +1,63 @@
 const fs = require('fs');
 const glob = require('glob');
 const path = require('path');
-const Parser = require('markdown-parser');
+// const Parser = require('markdown-parser');
+const marked = require('marked');
+
+const parser;
+const root = '';
+const bookTitle = '';
+const readmeFile = '';
+const summaryFile = '';
+
+function readFile(path) {
+  return new Promise((resolve, reject) => {
+    fs.readFile('path', 'utf8', (err, result) => {
+      if (err) return reject(err);
+      resolve(result);
+    });
+  })
+}
+
+function trim(data) {
+  if ( result.headings.length ) {
+    const fileTitle = result.headings[0].trim()
+    summaryContent += generateEntry( fileTitle, filePath, readmeFilename )
+  }
+}
+
+function parse(data) {
+  return new Promise((resolve, reject) => {
+    parser.parse()
+  })
+}
+
+function parseFile(file) {
+  return new Promise((resolve, reject) =>
+    readFile(`${root}/${file}`).then(parse).then(trim);
+
+
+
+        resolve()
+  );
+}
+
+function processFiles(err, files) {
+  files.forEach((file) => )
+}
+
+function init() {
+  parser = new Parser();
+  root = this.resolve('');
+  bookTitle = this.config.get('title');
+  readmeFilename = this.config.get('structure.readme');
+  summaryFilename = this.config.get('structure.summary');
+
+  glob(`*/**/*.md`, { cwd: root, ignore: ['node_modules/**'] }, processFiles);
+}
+
+module.exports = { hooks: { init } };
+
 
 // const fs = require('fs'),
 //       glob = require('glob'),
