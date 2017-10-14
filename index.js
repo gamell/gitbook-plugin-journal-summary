@@ -2,58 +2,70 @@ const fs = require('fs');
 const glob = require('glob');
 const path = require('path');
 // const Parser = require('markdown-parser');
-const marked = require('marked');
+// const marked = require('marked');
+const md = require('markdown');
 
-const parser;
-const root = '';
-const bookTitle = '';
-const readmeFile = '';
-const summaryFile = '';
+let readmeFilename = '';
+let summary = '';
 
-function readFile(path) {
+function readFile(filePath) {
   return new Promise((resolve, reject) => {
     fs.readFile('path', 'utf8', (err, result) => {
       if (err) return reject(err);
-      resolve(result);
+      resolve({contents: result, filePath});
     });
   })
 }
 
-function trim(data) {
-  if ( result.headings.length ) {
-    const fileTitle = result.headings[0].trim()
-    summaryContent += generateEntry( fileTitle, filePath, readmeFilename )
+function parse({contents, filePath}) {
+  return Promise.resolve({parsed: md.renderJsonML(markdownString), filePath});
+}
+
+function getTitle({parsed, filePath}) {
+  console.log(`PARSED: ${parsed}`);
+  // if ( result.headings.length ) {
+  //   const fileTitle = result.headings[0].trim()
+  // }
+  const title = "TEST!"
+  return Promise.resolve({title, filePath});
+}
+
+function getSummaryEntry({title, path}){
+  let depth = path.match(/\//g).length
+  if ( path.indexOf( readmeFilename ) == -1 ) {
+    depth++;
   }
+
+  return `${Array(depth).join('    ')}- [${title}](${path})\n`
 }
 
-function parse(data) {
+function processFile(filePath) {
+  return readFile(`${root}/${filePath}`).then(parse).then(getTitle).then(getSummaryEntry);
+}
+
+function generateSummary() {
+  let result = '';
   return new Promise((resolve, reject) => {
-    parser.parse()
-  })
+    glob(`*/**/*.md`, { cwd: root, ignore: ['node_modules/**'] }, (err, files) => {
+      if (err) return reject(err);
+      files.forEach((file) => {
+        result += processFile(file);
+      });
+      resolve(result);
+    });
+  });
 }
 
-function parseFile(file) {
-  return new Promise((resolve, reject) =>
-    readFile(`${root}/${file}`).then(parse).then(trim);
-
-
-
-        resolve()
-  );
-}
-
-function processFiles(err, files) {
-  files.forEach((file) => )
-}
-
-function init() {
-  parser = new Parser();
-  root = this.resolve('');
-  bookTitle = this.config.get('title');
+function async init() {
+  const root = this.resolve('');
+  const bookTitle = this.config.get('title');
+  const summaryFilename = this.config.get('structure.summary');
   readmeFilename = this.config.get('structure.readme');
-  summaryFilename = this.config.get('structure.summary');
 
-  glob(`*/**/*.md`, { cwd: root, ignore: ['node_modules/**'] }, processFiles);
+  summary = ( bookTitle ? `# ${bookTitle}\n\n` : '' )
+  summary += await generateSummary();
+  fs.writeFileSync( `${root}/${summaryFilename}`, summary, 'utf8');
+  console.log(`\x1b[36mgitbook-plugin-journal-summary: \x1b[32m${summaryFilename} generated successfully.`);
 }
 
 module.exports = { hooks: { init } };
