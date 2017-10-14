@@ -19,7 +19,6 @@
   "homepage": "https://github.com/gamell/gitbook-plugin-journal-summary#readme",
   "dependencies": {
     "glob": "^7.1.2",
-    "markdown-parser": "0.0.8",
-    "marked": "^0.3.6"
+    "markdown": "^0.5.0",
   }
 }
