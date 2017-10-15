@@ -1,0 +1,6 @@
+{
+  "title": "Individual entries for each day journal",
+  "author": "tester",
+  "gitbook": ">=3.0.0",
+  "plugins": ["journal-summary"]
+}
