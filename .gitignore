@@ -57,5 +57,7 @@ typings/
 # dotenv environment variables file
 .env
 
-test/outputs
+# Test Gitbooks output
 _book
+
+.DS_Store

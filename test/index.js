@@ -11,17 +11,32 @@ const pluginRoot = global.pluginRoot;
 //     });
 // });
 
-describe('Individual entries', function() {
-  const bookRoot = `${pluginRoot}/test/fixtures/individual-entries`;
+
+
+describe('Individual entry journal', function() {
+  const bookSrc = `${pluginRoot}/test/fixtures/individual-entries-journal`;
+  // Temp test folder to avoid infinite dependency loop
+  const bookRoot = `/tmp/gitbook-plugin-journal-summary-test`;
+  const gitbookBinary = `${pluginRoot}/node_modules/.bin/gitbook`
+  function exec(cmd, opts = { cwd: bookRoot }){
+    try {
+      const output = execSync(cmd, opts);
+      console.log(`Executing: \`${cmd}\`\n\n ${output}`);
+    } catch(e) {
+      //console.log(`Error Executing: \`${cmd}\` \n\n ${JSON.stringify(e, null, 2)}`);
+      throw e;
+    }
+  };
   before(function(){
-    execSync(`${pluginRoot}/node_modules/.bin/gitbook init`, { cwd: bookRoot });
+    exec(`rm -rf ${bookRoot}`, { cwd: bookSrc });
+    exec(`cp -R ${bookSrc} ${bookRoot}`, { cwd: bookSrc });
   });
   beforeEach(function(){
-    execSync('mkdir node_modules && ln -s ${pluginRoot} ${bookRoot}/node_modules/journal-summary')
-    execSync('../node_modules/.bin/gitbook build', { cwd: bookRoot });
+    exec(`mkdir node_modules && ln -s ${pluginRoot} ${bookRoot}/node_modules/gitbook-plugin-journal-summary`);
+    exec(`${gitbookBinary} build`);
   })
-  afterEach(function(){
-    execSync('rm -rf node_modules', { cwd: bookRoot });
+  after(function(){
+    //exec(`rm -rf ${bookRoot}`, { cwd: bookSrc });
   })
   describe('Summary File', function() {
     it('should return -1 when the value is not present', function() {
