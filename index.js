@@ -5,6 +5,9 @@ const path = require('path');
 // const marked = require('marked');
 const md = require('markdown');
 
+// For testing purposes
+global.pluginRoot = path.resolve(__dirname);
+
 let readmeFilename = '';
 let summary = '';
 
