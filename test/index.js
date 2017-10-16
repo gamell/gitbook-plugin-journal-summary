@@ -5,6 +5,17 @@ const pluginRoot = global.pluginRoot;
 
 describe('Individual entry journal', function() {
   const bookSrc = `${pluginRoot}/test/fixtures/individual-entries-journal`;
+  const map = {
+    title: 'Test Book',
+    'structure.summary':  `SUMMARY.md`,
+    'structure.readme':   `README.md`,
+  };
+  const fakeContext = {
+    resolve: (_) => bookSrc,
+    config: {
+      get: (key) => map[key]
+    }
+  };
 
   before(function(){
 
@@ -17,18 +28,6 @@ describe('Individual entry journal', function() {
   })
   describe('Summary File', function() {
     it('should run wihtout errors', function() {
-      const map = {
-        title: 'Test Book',
-        'structure.summary': `${bookSrc}/SUMMARY.md`,
-        'structure.readme': `${bookSrc}/README.md`,
-      };
-      const fakeContext = {
-        resolve: () => bookSrc,
-        config: {
-          get: (key) => map[key]
-        }
-      };
-
       const res = journalSummary.hooks.init.apply(fakeContext);
       assert.equal(res, 0, "Returns zero");
     });
