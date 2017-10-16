@@ -61,3 +61,5 @@ typings/
 _book
 
 .DS_Store
+
+test/**/SUMMARY.md
