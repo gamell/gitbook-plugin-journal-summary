@@ -14,7 +14,6 @@ let summary = '';
 global.pluginRoot = path.resolve(__dirname);
 
 function readFile(filePath) {
-  console.log(`READING FILE: ${filePath}`);
   return new Promise((resolve, reject) => {
     fs.readFile(filePath, 'utf8', (err, result) => {
       if (err) return reject(err);
@@ -41,7 +40,6 @@ function getTitle({ parsed, filePath }) {
 };
 
 function getSummaryEntry({ title, filePath }){
-  console.log(`GENERATING SUMMARY. TITLE: ${title}`)
   let depth = filePath.match(/\//g).length;
   if (filePath.indexOf(readmeFilename) === -1) {
     depth++;
