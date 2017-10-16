@@ -1,7 +1,13 @@
-const { assert } = require('chai');
+const chai = require('chai');
+const chaiAsPromised = require("chai-as-promised");
 const sinon = require('sinon');
 const journalSummary = require('../index.js');
+const { execSync } = require('child_process');
+
 const pluginRoot = global.pluginRoot;
+
+chai.use(chaiAsPromised);
+const assert = chai.assert;
 
 describe('Individual entry journal', function() {
   const bookSrc = `${pluginRoot}/test/fixtures/individual-entries-journal`;
@@ -18,18 +24,16 @@ describe('Individual entry journal', function() {
   };
 
   before(function(){
-
+    console.log(' *** Cleaning up SUMMARY.md ***');
+    execSync(`rm -rf SUMMARY.md`, { cwd: bookSrc });
   });
-  beforeEach(function(){
 
-  })
-  after(function(){
-    //exec(`rm -rf ${bookRoot}`, { cwd: bookSrc });
-  })
+  it('should run wihtout errors', function() {
+    const res = journalSummary.hooks.init.apply(fakeContext);
+    assert.eventually.equal(res, 0, "Returns zero");
+  });
+
   describe('Summary File', function() {
-    it('should run wihtout errors', function() {
-      const res = journalSummary.hooks.init.apply(fakeContext);
-      assert.equal(res, 0, "Returns zero");
-    });
+
   });
 });
