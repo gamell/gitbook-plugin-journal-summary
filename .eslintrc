@@ -1,0 +1,18 @@
+{
+  "env": {
+    "node": true,
+    "es6": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 8,
+    "ecmaFeatures": {
+
+    }
+  },
+  "extends": "google",
+  "rules": {
+    "require-jsdoc": 0,
+    "comma-dangle": 0,
+    "max-len": ["warn", 80]
+  }
+}
