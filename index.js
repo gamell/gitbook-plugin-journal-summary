@@ -38,14 +38,18 @@ function getTitle({parsed, filePath}) {
   return Promise.resolve({title, filePath});
 };
 
+function twoDigitize(i) {
+  return ('0' + i).slice(-2);
+};
+
 function getEntry({title, filePath}) {
   let fileName = path.parse(filePath).name;
   let date = moment(fileName);
   console.log(`DATE: ${date}`);
   const entry = {
-    year: date.year(),
-    month: date.month(),
-    day: date.date(),
+    year: date.year().toString(),
+    month: twoDigitize(date.month() + 1),
+    day: twoDigitize(date.date()),
     title,
     filePath
   };
@@ -64,10 +68,9 @@ function processFile(filePath) {
 
 function buildTree(prev, curr) {
   return prev.then((tree) =>
-    curr.then((node) => {
-      const {year, month, day, title, filePath} = node;
-      tree[year] = {title: year, filePath: ''} || tree[year];
-      tree[year][month] = {title: month, filePath: ''} || tree[year][month];
+    curr.then(({year, month, day, title, filePath}) => {
+      tree[year] = tree[year] || {title: year, filePath: ''};
+      tree[year][month] = tree[year][month] || {title: month, filePath: ''};
       tree[year][month][day] = {title, filePath};
       return tree;
     })
@@ -88,13 +91,12 @@ function generateSummaryTree() {
   });
 };
 
-function printTree(summaryTree, res = '', depth = 1) {
-  const node = Object.entries(summaryTree);
+function printTree(summaryTree, depth = 1) {
+  const node = Object.entries(summaryTree)[0]; // unwrap outer array
   const root = node.shift(); // get first element of the array
-  res += `${Array(depth).join('  ')}- [${root.title}](${root.filePath || ''})\n`;
-  depth++;
+  const res = `${Array(depth).join('  ')}- [${root.title}](${root.filePath || ''})\n`;
   node.forEach((children) => { // for each children of the node, we repeat
-    res += printTree(children, res, depth);
+    res += printTree(children, res, depth + 1);
   });
   return res;
 };
