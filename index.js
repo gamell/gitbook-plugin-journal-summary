@@ -3,7 +3,9 @@ const glob = require('glob');
 const path = require('path');
 const moment = require('moment');
 const Parser = require('markdown-parser');
+const TreeModel = require('tree-model');
 const parser = new Parser();
+const tree = new TreeModel();
 
 // Globals
 
@@ -47,9 +49,9 @@ function getEntry({title, filePath}) {
   let date = moment(fileName);
   console.log(`DATE: ${date}`);
   const entry = {
-    year: date.year().toString(),
-    month: twoDigitize(date.month() + 1),
-    day: twoDigitize(date.date()),
+    year: date.year(),
+    month: date.month() + 1,
+    day: date.date(),
     title,
     filePath
   };
@@ -62,18 +64,34 @@ function processFile(filePath) {
     .then(getTitle)
     .then(getEntry)
     .catch((reason) => {
+      console.error(reason);
       throw reason;
     });
 };
 
+function insertEntry(root, entry) {
+  const {year, month} = entry;
+  const monthBranch = {month, children: [entry]};
+  const yearBranch = {year, children: [monthBranch]};
+  const yearNode = root.first({strategy: 'breadth'}, (n) => n.model.year === year);
+  if (!yearNode) { // year doesn't exist yet
+    root.addChild(tree.parse(yearBranch));
+  } else {
+    const monthNode = yearNode.first({strategy: 'breadth'}, (n) => n.model.month === month);
+    if (!monthNode) { // month doesn't exist yet
+      yearNode.addChild(tree.parse(monthBranch));
+    } else {
+      monthNode.addChild(tree.parse(entry));
+    }
+  }
+  return root;
+};
+
 function buildTree(prev, curr) {
-  return prev.then((tree) =>
-    curr.then(({year, month, day, title, filePath}) => {
-      tree[year] = tree[year] || {title: year, filePath: ''};
-      tree[year][month] = tree[year][month] || {title: month, filePath: ''};
-      tree[year][month][day] = {title, filePath};
-      return tree;
-    })
+  return prev.then((root) =>
+    curr.then((entry) =>
+      insertEntry(root, entry)
+    )
   );
 };
 
@@ -84,20 +102,27 @@ function generateSummaryTree() {
       {cwd: rootPath, ignore: ['node_modules/**']},
       (err, files) => {
         if (err) return reject(err);
+        const root = tree.parse({name: 'root', children: []});
         return files.map(processFile)
-          .reduce(buildTree, Promise.resolve({}))
-          .then(resolve);
+          .reduce(buildTree, Promise.resolve(root))
+          .then(resolve, (reason) => {
+            console.error(reason);
+            throw reason;
+          });
     });
   });
 };
 
 function printTree(summaryTree, depth = 1) {
-  const node = Object.entries(summaryTree)[0]; // unwrap outer array
-  const root = node.shift(); // get first element of the array
-  const res = `${Array(depth).join('  ')}- [${root.title}](${root.filePath || ''})\n`;
-  node.forEach((children) => { // for each children of the node, we repeat
-    res += printTree(children, res, depth + 1);
-  });
+  // const node = Object.entries(summaryTree)[0]; // unwrap outer array
+  // const root = node.shift(); // get first element of the array
+  // const res = `${Array(depth).join('  ')}- [${root.title}](${root.filePath || ''})\n`;
+  // node.forEach((children) => { // for each children of the node, we repeat
+  //   res += printTree(children, res, depth + 1);
+  // });
+  console.log(`Is root? ${summaryTree.isRoot()}`);
+  console.log(`Has Children? ${summaryTree.hasChildren()}`);
+  res = '555';
   return res;
 };
 
