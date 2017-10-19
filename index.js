@@ -41,8 +41,9 @@ function getTitle({parsed, filePath}) {
   return Promise.resolve({title, filePath});
 };
 
-function twoDigitize(i) {
-  return ('0' + i).slice(-2);
+function generateName(entry) {
+  // TODO: Allow config for more title formats
+  return `${entry.day} - ${entry.title}`
 };
 
 function getEntry({title, filePath}) {
@@ -50,12 +51,13 @@ function getEntry({title, filePath}) {
   let date = moment(fileName);
   console.log(`DATE: ${date}`);
   const entry = {
-    year: date.year(),
-    month: date.month() + 1,
-    day: date.date(),
-    title,
-    filePath
+    year: date.format('YYYY'),
+    month: date.format('MMMM'), // TODO: Make customizable
+    day: date.format('Do'),
+    filePath: filePath.replace(rootPath, ''),
+    title
   };
+  entry.name = generateName(entry);
   return Promise.resolve(entry);
 };
 
@@ -72,27 +74,16 @@ function processFile(filePath) {
 
 function insert(root, entry) {
   const {year, month} = entry;
+  entry.level = 2;
+  entry.name = entry.title;
   const strategy = {strategy: 'breadth'};
   let yearNode = root.first(strategy, (n) => n.model.year === year);
-  if (!yearNode) yearNode = root.addChild(tree.parse({year}));
+  if (!yearNode) yearNode = root.addChild(tree.parse({name: year, level: 0}));
   let monthNode = yearNode.first(strategy, (n) => n.model.month === month);
-  if (!monthNode) monthNode = yearNode.addChild(tree.parse({month}));
+  if (!monthNode) monthNode = yearNode.addChild(tree.parse({name: month, level: 1}));
   monthNode.addChild(tree.parse(entry));
   return root;
 };
-
-// function insert(parent, entry, l = 0) {
-//   if (l>2) return;
-//   const level = treeLevels[l];
-//   const strategy = {strategy: 'breadth'};
-//   let node = parent.first(strategy, (n) => n.model[level] === entry[level]);
-//   if (!node) {
-//     node = tree.parse({[level]: entry[level]});
-//     parent.addChild(node);
-//   }
-//   insert(node, entry, l++);
-//   return parent;
-// };
 
 function buildTree(prev, curr) {
   return prev.then((root) =>
@@ -120,16 +111,15 @@ function generateSummaryTree() {
   });
 };
 
-function printTree(summaryTree, depth = 1) {
-  // const node = Object.entries(summaryTree)[0]; // unwrap outer array
-  // const root = node.shift(); // get first element of the array
-  // const res = `${Array(depth).join('  ')}- [${root.title}](${root.filePath || ''})\n`;
-  // node.forEach((children) => { // for each children of the node, we repeat
-  //   res += printTree(children, res, depth + 1);
-  // });
-  console.log(`Is root? ${summaryTree.isRoot()}`);
-  console.log(`Has Children? ${summaryTree.hasChildren()}`);
-  res = '555';
+function printTree(root) {
+  let res = '';
+  root.walk((node) => {
+    if (!node.isRoot()) {
+      node = node.model;
+      const indentation = '  '.repeat(node.level);
+      res += `- ${indentation}[${node.name}](${node.filePath || ''})\n`;
+    }
+  });
   return res;
 };
 
@@ -137,11 +127,10 @@ async function init() {
   const bookTitle = this.config.get('title');
   const summaryFilename = this.config.get('structure.summary');
   rootPath = this.resolve('');
-  // readmeFilename = this.config.get('structure.readme');
 
-  summaryTree = await generateSummaryTree();
-  console.log(`SUMMARY TREE: \n\n${JSON.stringify(summaryTree, null, 2)}`);
-  const summary = ( bookTitle ? `# ${bookTitle}\n\n` : '' ) + printTree(summaryTree);
+  const rootNode = await generateSummaryTree();
+  let summary = ( bookTitle ? `# ${bookTitle}\n\n` : '' );
+  summary += printTree(rootNode);
   fs.writeFileSync( `${rootPath}/${summaryFilename}`, summary, 'utf8');
   console.log(`\x1b[36mgitbook-plugin-journal-summary: \x1b[32m${summaryFilename} generated successfully.`);
   return 0;
