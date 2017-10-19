@@ -117,7 +117,7 @@ function printTree(root) {
     if (!node.isRoot()) {
       node = node.model;
       const indentation = '  '.repeat(node.level);
-      res += `- ${indentation}[${node.name}](${node.filePath || ''})\n`;
+      res += `${indentation}- [${node.name}](${node.filePath || ''})\n`;
     }
   });
   return res;
