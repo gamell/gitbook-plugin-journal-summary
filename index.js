@@ -6,6 +6,7 @@ const Parser = require('markdown-parser');
 const TreeModel = require('tree-model');
 const parser = new Parser();
 const tree = new TreeModel();
+const treeLevels = ['year', 'month', 'day'];
 
 // Globals
 
@@ -69,28 +70,34 @@ function processFile(filePath) {
     });
 };
 
-function insertEntry(root, entry) {
+function insert(root, entry) {
   const {year, month} = entry;
-  const monthBranch = {month, children: [entry]};
-  const yearBranch = {year, children: [monthBranch]};
-  const yearNode = root.first({strategy: 'breadth'}, (n) => n.model.year === year);
-  if (!yearNode) { // year doesn't exist yet
-    root.addChild(tree.parse(yearBranch));
-  } else {
-    const monthNode = yearNode.first({strategy: 'breadth'}, (n) => n.model.month === month);
-    if (!monthNode) { // month doesn't exist yet
-      yearNode.addChild(tree.parse(monthBranch));
-    } else {
-      monthNode.addChild(tree.parse(entry));
-    }
-  }
+  const strategy = {strategy: 'breadth'};
+  let yearNode = root.first(strategy, (n) => n.model.year === year);
+  if (!yearNode) yearNode = root.addChild(tree.parse({year}));
+  let monthNode = yearNode.first(strategy, (n) => n.model.month === month);
+  if (!monthNode) monthNode = yearNode.addChild(tree.parse({month}));
+  monthNode.addChild(tree.parse(entry));
   return root;
 };
+
+// function insert(parent, entry, l = 0) {
+//   if (l>2) return;
+//   const level = treeLevels[l];
+//   const strategy = {strategy: 'breadth'};
+//   let node = parent.first(strategy, (n) => n.model[level] === entry[level]);
+//   if (!node) {
+//     node = tree.parse({[level]: entry[level]});
+//     parent.addChild(node);
+//   }
+//   insert(node, entry, l++);
+//   return parent;
+// };
 
 function buildTree(prev, curr) {
   return prev.then((root) =>
     curr.then((entry) =>
-      insertEntry(root, entry)
+      insert(root, entry)
     )
   );
 };
