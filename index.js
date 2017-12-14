@@ -13,7 +13,7 @@ const treeLevels = ['year', 'month', 'day'];
 let rootPath = '';
 
 // Get from config later
-
+// TODO
 const config = {generateReadmes: true};
 
 // For testing purposes
@@ -124,6 +124,7 @@ function printTree(root) {
 };
 
 function maybeGenerateReadmes(root) {
+  // TODO
   return;
 };
 

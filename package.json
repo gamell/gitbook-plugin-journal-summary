@@ -4,7 +4,9 @@
   "description": "Plugin to generate gitbook's summary file for journal-style entries",
   "main": "index.js",
   "scripts": {
-    "test": "mocha test"
+    "test": "mocha test",
+    "unit-test": "mocha test/index.js",
+    "integration-test": "mocha test/integration.js"
   },
   "engines": {
     "gitbook": ">=3.0.0"
@@ -30,7 +32,6 @@
   },
   "homepage": "https://github.com/gamell/gitbook-plugin-journal-summary#readme",
   "dependencies": {
-    "chai-as-promised": "^7.1.1",
     "glob": "^7.1.2",
     "markdown-parser": "0.0.8",
     "moment": "^2.19.1",
@@ -38,9 +39,10 @@
   },
   "devDependencies": {
     "chai": "^4.1.2",
+    "chai-as-promised": "^7.1.1",
     "eslint": "^4.9.0",
     "eslint-config-google": "^0.9.1",
-    "gitbook-cli": "^2.3.2",
+    "gitbook-tester": "^1.4.3",
     "mocha": "^4.0.1",
     "sinon": "^4.0.1"
   }
