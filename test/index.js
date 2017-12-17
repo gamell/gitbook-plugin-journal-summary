@@ -11,7 +11,7 @@ chai.use(chaiAsPromised);
 const assert = chai.assert;
 
 describe('Individual entry journal', function() {
-  const bookSrc = `${pluginRoot}/test/fixtures/individual-entries-journal`;
+  const bookSrc = `${pluginRoot}/test/fixtures/individual-entries-journal-no-readmes`;
   const map = {
     'title': 'Test Book',
     'structure.summary': `SUMMARY.md`,
@@ -37,7 +37,7 @@ describe('Individual entry journal', function() {
       const res = journalSummary.hooks.init.apply(fakeContext);
       assert.eventually.equal(res, 0, 'Returns zero').catch((e) => {
         throw e;
-      }).then(done);
+      }).then(done).catch((e) => done(e));
     });
   });
 
