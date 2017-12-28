@@ -31,7 +31,7 @@ describe('Individual entry journal', function() {
 
   describe('Return value', function() {
 
-    after(cleanUp);
+    // after(cleanUp);
 
     it('Should eventually return 0', function(done) {
       const res = journalSummary.hooks.init.apply(fakeContext);
@@ -53,7 +53,7 @@ describe('Individual entry journal', function() {
       });
     });
 
-    after(cleanUp);
+    // after(cleanUp);
 
     it('Sould contain the title as the first line', function() {
       assert(summaryFile.indexOf('# Test Book') === 0, 'Has title in first line');
@@ -65,6 +65,10 @@ describe('Individual entry journal', function() {
     it('Should contain 2016 and 2017 as levels', function() {
       assert.include(summaryFile, '- [2016]()\n  - [May]()', 'Contains year as level');
       assert.include(summaryFile, '- [2017]()\n  - [September]()', 'Contains year as level');
+    });
+    it('Should contain 2016 level only once', function() {
+      let str = '- [2016]';
+      assert(summaryFile.indexOf(str) === summaryFile.lastIndexOf(str), 'Contains 2016 level only once');
     });
     it('Should contain a link to 2016-05-01.md with the correct indentation', function() {
       assert.include(summaryFile, '    - [1st - Nice day at the beach](/2016/2016-05/2016-05-01.md)');
