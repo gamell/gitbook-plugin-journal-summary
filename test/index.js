@@ -11,7 +11,7 @@ chai.use(chaiAsPromised);
 const assert = chai.assert;
 
 describe('Individual entry journal', function() {
-  const bookSrc = `${pluginRoot}/test/fixtures/individual-entries-journal-no-readmes`;
+  const bookSrc = `${pluginRoot}/test/fixtures/individual-entries-journal-with-summaries`;
   const map = {
     'title': 'Test Book',
     'structure.summary': `SUMMARY.md`,
@@ -63,8 +63,8 @@ describe('Individual entry journal', function() {
       assert.equal(lines, 13, 'Number of lines is equal');
     });
     it('Should contain 2016 and 2017 as levels', function() {
-      assert.include(summaryFile, '- [2016]()\n  - [May]()', 'Contains year as level');
-      assert.include(summaryFile, '- [2017]()\n  - [September]()', 'Contains year as level');
+      assert.include(summaryFile, '- [2016](2016.md)\n  - [May](2016-May.md)', 'Contains year as level');
+      assert.include(summaryFile, '- [2017](2017.md)\n  - [September](2017-September.md)', 'Contains year as level');
     });
     it('Should contain 2016 level only once', function() {
       let str = '- [2016]';
