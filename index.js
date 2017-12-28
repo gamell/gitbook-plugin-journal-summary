@@ -9,14 +9,12 @@ const tree = new TreeModel();
 
 // Globals
 
-let rootPath = '';
-let summaryFilename = '';
+let ROOT_PATH = '';
 
 // TODO: Get from config later
 const GENERATE_ALL = true;
 // const GENERATE_READMES = this.config.get('journal-summary.generateAll');
-const cache = {};
-const generatedSummaries = [];
+const CACHE = {};
 
 // For testing purposes
 global.pluginRoot = path.resolve(__dirname);
@@ -60,7 +58,7 @@ function getEntry({title, filePath}) {
     year: date.format('YYYY'),
     month: date.format('MMMM'), // TODO: Make customizable
     day: date.format('Do'),
-    filePath: filePath.replace(rootPath, ''),
+    filePath: filePath.replace(ROOT_PATH, ''),
     title
   };
   entry.name = getName(entry);
@@ -68,7 +66,7 @@ function getEntry({title, filePath}) {
 };
 
 function processFile(filePath) {
-  return readFile(`${rootPath}/${filePath}`)
+  return readFile(`${ROOT_PATH}/${filePath}`)
     .then(parse)
     .then(getTitle)
     .then(getEntry)
@@ -120,17 +118,17 @@ function addToTree(prev, curr) {
   );
 };
 
-function buildTree() {
+function buildTree(rootSummaryFilename) {
   return new Promise((resolve, reject) => {
     glob(
       `*/**/*.md`,
-      {cwd: rootPath, ignore: ['node_modules/**']},
+      {cwd: ROOT_PATH, ignore: ['node_modules/**']},
       (err, files) => {
         if (err) return reject(err);
         const root = tree.parse({
           name: 'root',
           children: [],
-          filePath: `${rootPath}/${summaryFilename}`
+          filePath: `${ROOT_PATH}/${rootSummaryFilename}`
         });
         return files.map(processFile)
           .reduce(addToTree, Promise.resolve(root))
@@ -139,59 +137,57 @@ function buildTree() {
   });
 };
 
-function walkTreeFrom(n) {
-  let res = '';
-  pendingSummaries = [];
+function getSummaryFrom(n) {
+  let summary = '';
+  const queue = [];
   // synchronously walk the whole tree
+  debugger;
   n.walk((node) => {
     if (!node.isRoot()) {
       const data = node.model;
-      if (cache[data.name]) res += cache[data.name];
-      else {
+      if (CACHE[data.name]) {
+        summary = CACHE[data.name];
+      } else {
         // will only execut this code ONCE, as the following executions will be cached
-        // month or year level AND generateReadmes
-        if (node.level < 2 && GENERATE_ALL) {
-          pendingSummaries.push(node);
+        // month or year level AND generate summaries
+        if (node.level < 2 && !node.isRoot() && GENERATE_ALL) {
+          queue.push(node);
         }
-        const data = node.model;
         const indentation = '  '.repeat(data.level);
         const link = data.filePath;
-        res += `${indentation}- [${data.name}](${link})\n`;
-        cache[data.name] = res;
+        summary += `${indentation}- [${data.name}](${link})\n`;
+        CACHE[data.name] = summary;
       }
     }
   });
-  // we call generateSummaries for each of the pending ones
-  return res;
+  return {summary, queue};
 }
 
-function generateSummary(node) {
+function writeSummaries(node, isRoot = false) {
   return new Promise((resolve, reject) => {
-    if (generatedSummaries[node.model.filePath]) return;
+    // if (generatedSummaries[node.model.filePath]) return;
     const data = node.model;
-    const title = node.isRoot() ? this.config.get('title') : data.name;
-    let summary = ( title ? `# ${title}\n\n` : '' );
-    summary += walkTreeFrom(node);
+    const title = isRoot ? this.config.get('title') : data.name;
+    let {summary, queue} = getSummaryFrom(node);
+    summary = ( title ? `# ${title}\n\n` : '' ) + summary;
     console.log(`Writing to ${data.filePath}, content: ${summary}`);
     fs.writeFileSync(data.filePath, summary, 'utf8');
-    generatedSummaries[node.model.filePath] = true;
-    resolve(node);
-    console.log(`\x1b[36mgitbook-plugin-journal-summary: \x1b[32m${summaryFilename} generated successfully.`);
+    // generatedSummaries[node.model.filePath] = true;
+    console.log(`\x1b[36mgitbook-plugin-journal-summary: \x1b[32m${data.filePath} generated successfully.`);
+    // if we also want to generate the mid-layer summaries, process the queue. Only called once
+    if (isRoot && queue.length > 0 && GENERATE_ALL) {
+      return Promise.all(queue.map(generateSummaries));
+    } // else
+    resolve();
   });
 };
 
-function generatePendingSummaries() {
-  if (pendingSummaries.length = 0) return;
-  return Promise.all(pendingSummaries.map(generateSummary))
-    .then(generatePendingSummaries);
-}
-
 async function init() {
-  rootPath = this.resolve('');
-  summaryFilename = this.config.get('structure.summary');
-  const root = await buildTree();
-  pendingSummaries = [generateSummary.call(this, root)];
-  await generatePendingSummaries();
+  ROOT_PATH = this.resolve('');
+  const rootSummaryFilename = this.config.get('structure.summary');
+  const root = await buildTree(rootSummaryFilename);
+  // generate initial summary from node (will write SUMMARY.md)
+  await writeSummaries.call(this, root, true);
   return 0;
 };
 
