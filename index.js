@@ -8,9 +8,7 @@ const parser = new Parser();
 const tree = new TreeModel();
 
 // Globals
-
 let ROOT_PATH = '';
-
 // TODO: Get from config later
 const GENERATE_ALL = true;
 // const GENERATE_READMES = this.config.get('journal-summary.generateAll');
@@ -112,7 +110,7 @@ function insert(root, entry) {
     }));
   }
   monthNode.addChild(tree.parse(entry));
-  return root;
+  return Promise.resolve(root);
 };
 
 function addToTree(prev, curr) {
@@ -155,7 +153,7 @@ function getSummaryFrom(n) {
       } else {
         // will only execut this code ONCE, as the following executions will be cached
         // month or year level AND generate summaries
-        if (data.level < 2 && !node.isRoot() && GENERATE_ALL) {
+        if (data.level < 2 && GENERATE_ALL) {
           queue.push(node);
         }
         const indentation = '  '.repeat(data.level);
@@ -169,32 +167,27 @@ function getSummaryFrom(n) {
 }
 
 function writeSummaries(node, isRoot = false) {
-  return new Promise((resolve, reject) => {
-    // if (generatedSummaries[node.model.filePath]) return;
-    const data = node.model;
-    const title = isRoot ? this.config.get('title') : data.name;
-    let {summary, queue} = getSummaryFrom(node);
-    debugger;
-    summary = ( title ? `# ${title}\n\n` : '' ) + summary;
-    console.log(`Writing to ${data.filePath}, content: ${summary}`);
-    fs.writeFileSync(data.filePath, summary, 'utf8');
-    // generatedSummaries[node.model.filePath] = true;
-    console.log(`\x1b[36mgitbook-plugin-journal-summary: \x1b[32m${data.filePath} generated successfully.`);
-    // if we also want to generate the mid-layer summaries, process the queue. Only called once
-    if (isRoot && queue.length > 0 && GENERATE_ALL) {
-      Promise.all(queue.map(writeSummaries)).then(resolve, reject);
-    } // else
-    resolve();
-  });
+  const data = node.model;
+  const title = isRoot ? this.config.get('title') : data.name;
+  let {summary, queue} = getSummaryFrom(node);
+  summary = ( title ? `# ${title}\n\n` : '' ) + summary;
+  console.log(`Writing to ${data.filePath}, content: ${summary}`);
+  fs.writeFileSync(data.filePath, summary, 'utf8');
+  console.log(`\x1b[36mgitbook-plugin-journal-summary: \x1b[32m${data.filePath} generated successfully.`);
+  // if we also want to generate the mid-layer summaries, process the queue. Only called once
+  if (isRoot && queue.length > 0 && GENERATE_ALL) {
+    queue.forEach((node) => {
+      writeSummaries(node);
+    });
+  }
 };
 
 async function init() {
   ROOT_PATH = this.resolve('');
   const rootSummaryFilename = this.config.get('structure.summary');
   const root = await buildTree(rootSummaryFilename);
-  // generate initial summary from node (will write SUMMARY.md)
-  await writeSummaries.call(this, root, true);
+  writeSummaries.call(this, root, true);
   return 0;
 };
 
-module.exports = {hooks: {'init': init}};
+module.exports = {hooks: {init}};
