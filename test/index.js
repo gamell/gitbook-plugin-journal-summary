@@ -26,12 +26,15 @@ describe('Individual entry journal', function() {
 
   function cleanup() {
     console.log('*** Cleaning up ***');
-    execSync(`rm -rf SUMMARY.md 2017-September.md`, {cwd: bookSrc});
+    execSync(
+      `rm -rf SUMMARY.md 2016.md 2017.md 2016-May.md 2017-September.md 2017-October.md`,
+      {cwd: bookSrc}
+    );
   }
 
   describe('Return value', function() {
 
-    // after(cleanup);
+    after(cleanup);
 
     it('Should eventually return 0', function(done) {
       const res = journalSummary.hooks.init.apply(fakeContext);
@@ -88,7 +91,11 @@ describe('Individual entry journal', function() {
   });
 
   describe('Intermediate Summary Files', function() {
+    let summaryFile2016;
+    let summaryFile2016May;
+    let summaryFile2017;
     let summaryFile2017Sept;
+    let summaryFile2017Oct;
 
     before(function() {
       // we return a promise so mocha will know when the `before` has actually finished
