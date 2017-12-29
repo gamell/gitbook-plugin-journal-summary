@@ -56,7 +56,7 @@ function getEntry({title, filePath}) {
     year: date.format('YYYY'),
     month: date.format('MMMM'), // TODO: Make customizable
     day: date.format('Do'),
-    relativeFilePath: filePath.replace(ROOT_PATH, ''),
+    uri: filePath.replace(ROOT_PATH, ''),
     filePath,
     title
   };
@@ -91,21 +91,21 @@ function insert(root, entry) {
   const strategy = {strategy: 'breadth'};
   let yearNode = root.first(strategy, (n) => n.model.year === year);
   if (!yearNode) {
-    let relativeFilePath = getReadmeLink(year);
+    let uri = getReadmeLink(year);
     yearNode = root.addChild(tree.parse({
       name: year,
-      filePath: `${ROOT_PATH}/${relativeFilePath}`,
-      relativeFilePath,
+      filePath: `${ROOT_PATH}/${uri}`,
+      uri,
       level: 0
     }));
   }
   let monthNode = yearNode.first(strategy, (n) => n.model.month === month);
   if (!monthNode) {
-    let relativeFilePath = getReadmeLink(year, month);
+    let uri = getReadmeLink(year, month);
     monthNode = yearNode.addChild(tree.parse({
       name: month,
-      filePath: `${ROOT_PATH}/${relativeFilePath}`,
-      relativeFilePath,
+      filePath: `${ROOT_PATH}/${uri}`,
+      uri,
       level: 1
     }));
   }
@@ -125,14 +125,14 @@ function buildTree(rootSummaryFilename) {
   return new Promise((resolve, reject) => {
     glob(
       `*/**/*.md`,
-      {cwd: ROOT_PATH, ignore: ['node_modules/**']},
+      {cwd: ROOT_PATH, ignore: ['node_modules/**', '_book/**']},
       (err, files) => {
         if (err) return reject(err);
         const root = tree.parse({
           name: 'root',
           children: [],
           filePath: `${ROOT_PATH}/${rootSummaryFilename}`,
-          relativeFilePath: rootSummaryFilename
+          uri: rootSummaryFilename
         });
         return files.map(processFile)
           .reduce(addToTree, Promise.resolve(root))
@@ -141,44 +141,46 @@ function buildTree(rootSummaryFilename) {
   });
 };
 
-function getSummaryFrom(n) {
+function getLine(ind, name, uri) {
+  return `${ind}- [${name}](${uri})\n`;
+}
+
+function getSummaryFrom(n, mainSummary) {
   let summary = '';
   const queue = [];
+  let maxDepth = 0;
   // synchronously walk the whole tree
   n.walk((node) => {
-    if (!node.isRoot()) {
-      const data = node.model;
-      if (CACHE[data.name]) {
-        summary = CACHE[data.name];
-      } else {
-        // will only execut this code ONCE, as the following executions will be cached
-        // month or year level AND generate summaries
-        if (data.level < 2 && GENERATE_ALL) {
-          queue.push(node);
-        }
-        const indentation = '  '.repeat(data.level);
-        const link = data.relativeFilePath;
-        summary += `${indentation}- [${data.name}](${link})\n`;
-        CACHE[data.name] = summary;
-      }
+    if (node.isRoot()) return true;
+    const data = node.model;
+    let indentation = '';
+    if (mainSummary) {
+      if (data.level < 2 && GENERATE_ALL) queue.push(node);
+      indentation = '  '.repeat(data.level);
+    } else {
+      // prevent to visit other nodes from the tree that we do not need to visit if we are building a summary file for a Month
+      if (data.level < maxDepth && n.model.level > 0) return false;
+      let level = data.level - n.model.level;
+      indentation = '  '.repeat(level);
+      maxDepth = data.level;
+      if (level === 0) return true; // skip this level as it will already be in the title, but continue walking the tree
     }
+    summary += getLine(indentation, data.name, data.uri);
   });
   return {summary, queue};
 }
 
-function writeSummaries(node, isRoot = false) {
+function writeSummaries(node, isRoot = false, title = '') {
   const data = node.model;
-  const title = isRoot ? this.config.get('title') : data.name;
-  let {summary, queue} = getSummaryFrom(node);
+  title = !!title ? title : data.name;
+  let {summary, queue} = getSummaryFrom(node, isRoot);
   summary = ( title ? `# ${title}\n\n` : '' ) + summary;
   console.log(`Writing to ${data.filePath}, content: ${summary}`);
   fs.writeFileSync(data.filePath, summary, 'utf8');
   console.log(`\x1b[36mgitbook-plugin-journal-summary: \x1b[32m${data.filePath} generated successfully.`);
   // if we also want to generate the mid-layer summaries, process the queue. Only called once
   if (isRoot && queue.length > 0 && GENERATE_ALL) {
-    queue.forEach((node) => {
-      writeSummaries(node);
-    });
+    queue.forEach((node) => writeSummaries(node));
   }
 };
 
@@ -186,7 +188,7 @@ async function init() {
   ROOT_PATH = this.resolve('');
   const rootSummaryFilename = this.config.get('structure.summary');
   const root = await buildTree(rootSummaryFilename);
-  writeSummaries.call(this, root, true);
+  writeSummaries(root, true, this.config.get('title'));
   return 0;
 };
 
