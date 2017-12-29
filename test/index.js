@@ -24,14 +24,14 @@ describe('Individual entry journal', function() {
     }
   };
 
-  function cleanUp() {
+  function cleanup() {
     console.log('*** Cleaning up ***');
-    execSync(`rm -rf SUMMARY.md`, {cwd: bookSrc});
+    execSync(`rm -rf SUMMARY.md 2017-September.md`, {cwd: bookSrc});
   }
 
   describe('Return value', function() {
 
-    // after(cleanUp);
+    // after(cleanup);
 
     it('Should eventually return 0', function(done) {
       const res = journalSummary.hooks.init.apply(fakeContext);
@@ -41,13 +41,13 @@ describe('Individual entry journal', function() {
     });
   });
 
-  describe('Summary File', function() {
+  describe('Main summary File', function() {
 
     let summaryFile;
 
     before(function() {
       // we return a promise so mocha will know when the `before` has actually finished
-      execSync(`rm -rf SUMMARY.md`, {cwd: bookSrc});
+      cleanup();
       return journalSummary.hooks.init.apply(fakeContext).then((_) => {
         summaryFile = fs.readFileSync(`${bookSrc}/SUMMARY.md`, 'utf-8');
       });
@@ -85,6 +85,29 @@ describe('Individual entry journal', function() {
     it('Should contain a link to 2017-10-05.md with the correct indentation', function() {
       assert.include(summaryFile, '    - [5th - Nice weather in the city](/2017/2017-10/2017-10-05.md)');
     });
+  });
+
+  describe('Intermediate Summary Files', function() {
+    let summaryFile2017Sept;
+
+    before(function() {
+      // we return a promise so mocha will know when the `before` has actually finished
+      cleanup();
+      return journalSummary.hooks.init.apply(fakeContext).then((_) => {
+        summaryFile2017Sept = fs.readFileSync(`${bookSrc}/2017-September.md`, 'utf-8');
+      });
+    });
+
+    // after(cleanup);
+
+    it('2017-September.md Should only contain summary for September', function() {
+      assert.notInclude(summaryFile2017Sept, 'October');
+    });
+
+    it('2017 Should contain summary for all year', function() { // instead of only info for some months
+      //assert.notInclude(summaryFile2017Sept, 'October');
+    });
+
   });
 
 });
