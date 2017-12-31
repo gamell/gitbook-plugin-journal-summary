@@ -102,17 +102,35 @@ describe('Individual entry journal', function() {
       cleanup();
       return journalSummary.hooks.init.apply(fakeContext).then((_) => {
         summaryFile2017Sept = fs.readFileSync(`${bookSrc}/2017-September.md`, 'utf-8');
+        summaryFile2017 = fs.readFileSync(`${bookSrc}/2017.md`, 'utf-8');
       });
     });
 
     // after(cleanup);
 
-    it('2017-September.md Should only contain summary for September', function() {
-      assert.notInclude(summaryFile2017Sept, 'October');
+    it('2017 Should contain summary for all year', function() { // instead of only info for some months
+      assert.include(summaryFile2017, '[September](2017-September.md)');
+      assert.include(summaryFile2017, '    - [10th - Had a walk on the mountain](/2017/2017-09/2017-09-10.md)');
+      assert.include(summaryFile2017, '[October](2017-October.md)');
+      assert.include(summaryFile2017, '    - [5th - Nice weather in the city](/2017/2017-10/2017-10-05.md)');
     });
 
-    it('2017 Should contain summary for all year', function() { // instead of only info for some months
-      //assert.notInclude(summaryFile2017Sept, 'October');
+    it('Year-level summaries shoul not contain other years other than themselves', function() { // instead of only info for some months
+      assert.notInclude(summaryFile2017, '2016');
+    });
+
+    it('Month-level summaries should contain only the days for that month', function() { // instead of only info for some months
+      assert.notInclude(summaryFile2017Sept, 'October');
+      assert.include(summaryFile2017Sept, '  - [10th - Had a walk on the mountain](/2017/2017-09/2017-09-10.md)');
+      assert.include(summaryFile2017Sept, '  - [11th - Last day of vacation](/2017/2017-09/2017-09-11.md)');
+    });
+
+    it('Year-level summaries should have the year as header', function() { // instead of only info for some months
+      assert.include(summaryFile2017, '# 2017');
+    });
+
+    it('Month-level summaries should have the month as header', function() { // instead of only info for some months
+      assert.include(summaryFile2017Sept, '# September 2017');
     });
 
   });
