@@ -94,6 +94,7 @@ function insert(root, entry) {
     let uri = getReadmeLink(year);
     yearNode = root.addChild(tree.parse({
       name: year,
+      title: year,
       filePath: `${ROOT_PATH}/${uri}`,
       uri,
       level: 0
@@ -104,6 +105,7 @@ function insert(root, entry) {
     let uri = getReadmeLink(year, month);
     monthNode = yearNode.addChild(tree.parse({
       name: month,
+      title: `${month} ${year}`,
       filePath: `${ROOT_PATH}/${uri}`,
       uri,
       level: 1
@@ -172,7 +174,7 @@ function getSummaryFrom(n, mainSummary) {
 
 function writeSummaries(node, isRoot = false, title = '') {
   const data = node.model;
-  title = !!title ? title : data.name;
+  title = !!title ? title : data.title;
   let {summary, queue} = getSummaryFrom(node, isRoot);
   summary = ( title ? `# ${title}\n\n` : '' ) + summary;
   console.log(`Writing to ${data.filePath}, content: ${summary}`);
