@@ -1,3 +1,5 @@
+
+
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 // const sinon = require('sinon');
@@ -16,6 +18,11 @@ describe('Individual entry journal', function() {
     'title': 'Test Book',
     'structure.summary': `SUMMARY.md`,
     'structure.readme': `README.md`,
+    'pluginsConfig': {
+      "journal-summary": {
+        "generateAll": true
+      }
+    }
   };
   const fakeContext = {
     resolve: (_) => bookSrc,
