@@ -10,9 +10,8 @@ const tree = new TreeModel();
 // Globals
 let ROOT_PATH = '';
 // TODO: Get from config later
-const GENERATE_ALL = true;
-// const GENERATE_READMES = this.config.get('journal-summary.generateAll');
-const CACHE = {};
+let GENERATE_ALL;
+
 
 // For testing purposes
 global.pluginRoot = path.resolve(__dirname);
@@ -160,7 +159,7 @@ function getSummaryFrom(n, mainSummary) {
       if (data.level < 2 && GENERATE_ALL) queue.push(node);
       indentation = '  '.repeat(data.level);
     } else {
-      // prevent to visit other nodes from the tree that we do not need to visit if we are building a summary file for a Month
+      // prevent visiting other nodes from the tree that we do not need to visit if we are building a summary file for a Month
       if (data.level < maxDepth && n.model.level > 0) return false;
       let level = data.level - n.model.level;
       indentation = '  '.repeat(level);
@@ -188,6 +187,8 @@ function writeSummaries(node, isRoot = false, title = '') {
 
 async function init() {
   ROOT_PATH = this.resolve('');
+  GENERATE_ALL = this.config.get('pluginsConfig.journal-summary.generateAll');
+  debugger;
   const rootSummaryFilename = this.config.get('structure.summary');
   const root = await buildTree(rootSummaryFilename);
   writeSummaries(root, true, this.config.get('title'));

@@ -13,16 +13,20 @@ chai.use(chaiAsPromised);
 const assert = chai.assert;
 
 describe('Individual entry journal', function() {
-  this.timeout(20000);
+  this.timeout(200000);
   let summaryFile
   let htmlFile;
   before(function(done) {
     tester.builder()
-      .withContent('This text is {% em %}highlighted!{% endem %}')
       .withBookJson({
         title: 'Individual entries for each day journal',
         author: 'tester',
-        gitbook: '>=3.0.0'
+        gitbook: '>=3.0.0',
+        pluginsConfig: {
+          'journal-summary': {
+            generateAll: true
+          }
+        }
       })
       .withLocalPlugin(require('path').join(__dirname, '..')) // parent dir
       .withFile('README.md', 'Individual entries test book')
@@ -34,10 +38,10 @@ describe('Individual entry journal', function() {
       .create()
       .then(function(result) {
         console.log(result[0].content);
-        // summaryFile = result.get('SUMMARY.md').content;
-        // htmlFile = result.get('index.html');
-        done();
-      });
+        debugger;
+        summaryFile = result.get('SUMMARY.md').content;
+        htmlFile = result.get('index.html');
+      }).fin(done).done();
   });
 
   describe('Summary File', function() {
