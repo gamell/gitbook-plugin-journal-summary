@@ -19,7 +19,7 @@ describe('Individual entry journal', function() {
     'structure.summary': `SUMMARY.md`,
     'structure.readme': `README.md`,
     'pluginsConfig': {
-      "journal-summary": {
+      "summary": {
         "generateAll": true
       }
     }

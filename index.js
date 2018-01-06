@@ -187,8 +187,9 @@ function writeSummaries(node, isRoot = false, title = '') {
 
 async function init() {
   ROOT_PATH = this.resolve('');
-  GENERATE_ALL = this.config.get('pluginsConfig.journal-summary.generateAll');
-  debugger;
+  GENERATE_ALL = this.config.get('pluginsConfig').summary.generateAll;
+  console.log('*** GENERATE ALL: '+GENERATE_ALL);
+  console.log(`pluginsConfig: ${this.config.get('pluginsConfig')}`);
   const rootSummaryFilename = this.config.get('structure.summary');
   const root = await buildTree(rootSummaryFilename);
   writeSummaries(root, true, this.config.get('title'));
