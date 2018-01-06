@@ -3,7 +3,7 @@
   "author": "tester",
   "gitbook": ">=3.0.0",
   "pluginsConfig": {
-    "journal-summary": {
+    "journal": {
       "generateAll": true
     }
   }

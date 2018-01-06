@@ -4,19 +4,17 @@
   "description": "Plugin to generate gitbook's summary file for journal-style entries",
   "main": "index.js",
   "scripts": {
-    "test": "mocha test",
-    "unit-test": "mocha test/index.js",
-    "integration-test": "mocha test/integration.js"
+    "test": "mocha test/index.js"
   },
   "engines": {
     "gitbook": ">=3.0.0"
   },
   "gitbook": {
     "properties": {
-      "structure": {
-        "type": "string",
-        "default": "individual-entries",
-        "description": "Default Journal entries structure"
+      "generateAll": {
+        "type": "boolean",
+        "default": false,
+        "description": "Generate summary entries for Years and Month levels"
       }
     }
   },
@@ -42,7 +40,6 @@
     "chai-as-promised": "^7.1.1",
     "eslint": "^4.9.0",
     "eslint-config-google": "^0.9.1",
-    "gitbook-tester": "^1.4.3",
     "mocha": "^4.0.1",
     "sinon": "^4.0.1"
   }
