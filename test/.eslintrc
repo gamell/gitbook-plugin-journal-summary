@@ -2,5 +2,7 @@
   "env": {
     "mocha": true
   },
-  "max-len": false
+  "rules": {
+    "max-len": 0
+  }
 }
