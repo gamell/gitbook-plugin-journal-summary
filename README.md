@@ -1,10 +1,10 @@
 # gitbook-plugin-journal-summary
 
-This plugin is oriented to those who want to use `gitbook` as a journal. It will automatically generate the `SUMMARY.md` file for a
+This plugin automatically generates your summary file(s) for your journal entries, effectively allowing you to use `gitbook` to compile your journal. It will automatically generate the `SUMMARY.md` and, optionally, intermediate summary files.
 
 ## Setup
 
-Add this to your `bookj.js`:
+Add this to your `bookj.json`:
 
 ```json
 
@@ -14,28 +14,28 @@ Add this to your `bookj.js`:
 
 ```
 
-Then run `gitbook serve` or `gitbook run`
+Then run `gitbook build`
+
+**If you run `gitbook serve` directly it might not correctly pickup the newly generated summary files, so I recommend running `gitbook build` first**
 
 ## Usage
 
-The plugin expects your Markdown files to be named in a correct date format, namely `YYYY-MM-DD.md`. It does not matter what folders or how many level deep you put your Markdown files. The plugin will find all the Markdown files that have a valid date format, build a tree where there are levels for Year, Month, and the leafs are the individual entries, and output that in the correct format to the `SUMMARY.md` file.
+This plugin expects your Markdown Journal Entries to be named in this pattern: `YYYY-MM-DD.md` (e.g. `2017-12-29`). It does not matter what folders or how many level deep you put your Markdown files. The plugin will find all the Markdown files that match the date format, build a tree with levels for Year, Month, and the individual entries as leafs. It will then output that in the correct format to the `SUMMARY.md` file.
 
 For example, the following book structure:
 
 ```
 |
-|- 2017
-|   |
-|   |- 10
-|       |
-|       |- 2017-10-01.md
+|- 2017-09-10.md
+|
+ \- 2017
+|    \- 10
+|        |- 2017-10-01.md
 |  
-|- 2016
-     |
+ \- 2016
      |- 2016-02-28.md
      |- 2017-10-02.md
-     |- 09
-        |
+     \- 09
         |- 2016-09-01.md
 
 ```
@@ -43,24 +43,45 @@ For example, the following book structure:
 Will generate the following tree:
 
 ```
-
-|
-|- 2016
-|   |- 02
-|   |    \_ 2016-02-28.md
-|   |- 09   
-|   |   |
+(root)
+  |
+   \_ 2016
+  |    \_ February
+  |   |       \_ 28th
+  |    \_ September   
+  |   |       \_ 
 
 ```
 
-You can define a title
+## Configuration
 
-## Config
+Optionally, you can set the `generateAll` option to `true` if you want the plugin to also generate *intermediate* summary files for Year and Month levels, i.e. if you want the Year and Month levels to be `clickable` and to contain a summary of their contents. That option is to `false` by default. To set that option to true, add the following in your `book.json` file:
 
-_Soon_
+```json
+  "pluginsConfig": {
+    "journal": {
+      "generateAll": true
+    }
+  }
+```
 
-##
+An example of a complete `book.json` file could look like this:
+
+```json
+{
+    "title": "Test Book",
+    "plugins": ["journal-summary"],
+    "pluginsConfig": {
+      "journal": {
+        "generateAll": true
+      }
+    }
+}
+```
+
+
+
 
 ## Credit
 
-Based on [julianxhokaxhiu's gitbook plugin](https://github.com/julianxhokaxhiu/gitbook-plugin-summary).
+Initially based on [julianxhokaxhiu's gitbook plugin](https://github.com/julianxhokaxhiu/gitbook-plugin-summary).
