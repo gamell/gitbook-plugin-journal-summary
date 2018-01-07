@@ -76,7 +76,7 @@ function processFile(filePath) {
 
 function getReadmeLink(year, month) {
   if (GENERATE_ALL) {
-    let link = `${year}`;
+    let link = `summaries/${year}`;
     if (!!month) link += `-${month}`;
     link += '.md';
     return link;
@@ -122,12 +122,26 @@ function addToTree(prev, curr) {
   );
 };
 
+function compareDate(a, b) {
+  let dateRegex = /[\d]{4}-[\d]{2}-[\d]{2}/g;
+  a = a.match(dateRegex)[0];
+  b = b.match(dateRegex)[0];
+  if (a < b) {
+    return -1;
+  }
+  if (a > b) {
+    return 1;
+  }
+  return 0;
+}
+
 function buildTree(rootSummaryFilename) {
   return new Promise((resolve, reject) => {
     glob(
-      `*/**/*.md`,
-      {cwd: ROOT_PATH, ignore: ['node_modules/**', '_book/**']},
+      `**/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9].md`,
+      {cwd: ROOT_PATH, ignore: ['node_modules/**', '_book/**', 'summaries/**']},
       (err, files) => {
+        files.sort(compareDate);
         if (err) return reject(err);
         const root = tree.parse({
           name: 'root',
@@ -176,20 +190,22 @@ function writeSummaries(node, isRoot = false, title = '') {
   title = !!title ? title : data.title;
   let {summary, queue} = getSummaryFrom(node, isRoot);
   summary = ( title ? `# ${title}\n\n` : '' ) + summary;
-  console.log(`Writing to ${data.filePath}, content: ${summary}`);
   fs.writeFileSync(data.filePath, summary, 'utf8');
   console.log(`\x1b[36mgitbook-plugin-journal-summary: \x1b[32m${data.filePath} generated successfully.`);
   // if we also want to generate the mid-layer summaries, process the queue. Only called once
   if (isRoot && queue.length > 0 && GENERATE_ALL) {
+    // create the directory where we will put all the intermediate summaries
+    if (!fs.existsSync(`${ROOT_PATH}/summaries`)) {
+      fs.mkdirSync(`${ROOT_PATH}/summaries`);
+    }
     queue.forEach((node) => writeSummaries(node));
   }
 };
 
 async function init() {
   ROOT_PATH = this.resolve('');
-  GENERATE_ALL = this.config.get('pluginsConfig').summary.generateAll;
-  console.log('*** GENERATE ALL: '+GENERATE_ALL);
-  console.log(`pluginsConfig: ${this.config.get('pluginsConfig')}`);
+  const pluginConfig = this.config.get('pluginsConfig');
+  GENERATE_ALL = !!pluginConfig ? pluginConfig.journal.generateAll : false;
   const rootSummaryFilename = this.config.get('structure.summary');
   const root = await buildTree(rootSummaryFilename);
   writeSummaries(root, true, this.config.get('title'));
