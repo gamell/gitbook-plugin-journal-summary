@@ -1,4 +1,4 @@
-# gitbook-plugin-journal-summary
+# gitbook-plugin-journal-summary  [![Build Status](https://travis-ci.org/gamell/gitbook-plugin-journal-summary.svg?branch=master)](https://travis-ci.org/gamell/gitbook-plugin-journal-summary)
 
 This plugin automatically generates your summary file(s) for your journal entries, effectively allowing you to use `gitbook` to compile your journal. It will automatically generate the `SUMMARY.md` and, optionally, intermediate summary files.
 
