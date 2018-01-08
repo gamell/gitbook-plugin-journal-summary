@@ -9,12 +9,12 @@ This is a [Gitbook](https://github.com/GitbookIO/gitbook) plugin automatically g
 
 ## Setup
 
-Add this to your `bookj.json`:
+Add this to your `book.json`:
 
 ```json
 
 {
-  "plugins": ["gitbook-plugin-journal-summary"]
+  "plugins": ["journal-summary"]
 }
 
 ```
