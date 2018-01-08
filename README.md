@@ -1,5 +1,5 @@
 # gitbook-plugin-journal-summary
-[![Build Status](https://travis-ci.org/gamell/gitbook-plugin-journal-summary.svg?branch=master)](https://travis-ci.org/gamell/gitbook-plugin-journal-summary) [![Dependencies Status](https://david-dm.org/gamell/gitbook-plugin-journal-summary.svg)](https://david-dm.org/gamell/gitbook-plugin-journal-summary)
+[![Build Status](https://travis-ci.org/gamell/gitbook-plugin-journal-summary.svg?branch=master)](https://travis-ci.org/gamell/gitbook-plugin-journal-summary) [![Dependencies Status](https://david-dm.org/gamell/gitbook-plugin-journal-summary.svg)](https://david-dm.org/gamell/gitbook-plugin-journal-summary) [![npm version](https://badge.fury.io/js/gitbook-plugin-journal-summary.svg)](https://badge.fury.io/js/gitbook-plugin-journal-summary)
 
 This is a [Gitbook](https://github.com/GitbookIO/gitbook) plugin automatically generates your summary file(s) for your journal entries, effectively allowing you to use `gitbook` to compile your journal. It will automatically generate the `SUMMARY.md` and, optionally, intermediate summary files.
 
