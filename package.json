@@ -1,6 +1,6 @@
 {
   "name": "gitbook-plugin-journal-summary",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Plugin to generate gitbook's summary file for journal-style entries",
   "main": "index.js",
   "scripts": {
